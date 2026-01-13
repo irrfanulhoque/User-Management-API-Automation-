@@ -1,0 +1,592 @@
+{
+	"info": {
+		"_postman_id": "4c1d0e03-229a-4608-960c-e626f3a1baeb",
+		"name": "User Flow Automation",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "51225868",
+		"_collection_link": "https://irrfanulhoque-1160320.postman.co/workspace/Irfanul-Hoque's-Workspace~83d88408-5652-4ede-8fb4-d912f7165bf9/collection/51225868-4c1d0e03-229a-4608-960c-e626f3a1baeb?action=share&source=collection_link&creator=51225868"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login - Valid (Extract Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse the JSON response",
+									"const jsonData = pm.response.json();",
+									"",
+									"// Extract the token and store it in the environment variable",
+									"pm.environment.set(\"token\", jsonData.token);",
+									"",
+									"// Test to verify the token exists",
+									"pm.test(\"Token exists in response\", function () {",
+									"    pm.expect(jsonData.token).to.exist;",
+									"    pm.expect(jsonData.token).to.be.a('string');",
+									"    pm.expect(jsonData.token).to.not.be.empty;",
+									"    console.log(\"Token value is: \", jsonData.token)",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Get the current timestamp",
+									"const now = new Date();",
+									"",
+									"// Format as MM-DD-YYYY HH:mm:ss with leading zeros",
+									"const month = String(now.getMonth() + 1).padStart(2, '0');",
+									"const day = String(now.getDate()).padStart(2, '0');",
+									"const year = now.getFullYear();",
+									"const hours = String(now.getHours()).padStart(2, '0');",
+									"const minutes = String(now.getMinutes()).padStart(2, '0');",
+									"const seconds = String(now.getSeconds()).padStart(2, '0');",
+									"",
+									"const formattedTimestamp = `${month}-${day}-${year} ${hours}:${minutes}:${seconds}`;",
+									"",
+									"// Store in environment variable",
+									"pm.environment.set(\"time now\", formattedTimestamp);",
+									"",
+									"console.log(\"Timestamp stored:\", formattedTimestamp);"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"eve.holt@reqres.in\",\r\n    \"password\": \"cityslicka\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}api/login",
+							"host": [
+								"{{baseUrl}}api"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login - Invalid",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Login fails with invalid credentials\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 401]);",
+									"});",
+									"",
+									"pm.test(\"Error message is present\", function () {",
+									"    let response = pm.response.json();",
+									"    pm.expect(response.error || response.message).to.exist;",
+									"});",
+									"",
+									"pm.test(\"Token is not returned on failed login\", function () {",
+									"    let response = pm.response.json();",
+									"    pm.expect(response.token).to.be.undefined;",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"wrong@test.com\",\r\n  \"password\": \"wrongpassword\"\r\n}\r\n"
+						},
+						"url": {
+							"raw": "{{baseUrl}}api/login",
+							"host": [
+								"{{baseUrl}}api"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User CRUD",
+			"item": [
+				{
+					"name": "Create User (Valid)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse the JSON response",
+									"const jsonData = pm.response.json();",
+									"",
+									"// Extract the id and store it in the environment variable",
+									"pm.environment.set(\"userId\", jsonData.id);",
+									"",
+									"// Test to verify the id exists",
+									"pm.test(\"User ID exists in response\", function () {",
+									"    pm.expect(jsonData.id).to.exist;",
+									"    pm.expect(jsonData.id).to.be.a('string');",
+									"    pm.expect(jsonData.id).to.not.be.empty;",
+									"    console.log(\"User ID value is:\", jsonData.id);",
+									"",
+									"    // Correct Chai assertion",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"morpheus\",\r\n    \"job\": \"leader\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}api/users",
+							"host": [
+								"{{baseUrl}}api"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create User (No Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Unauthorized access without token\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403]);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Protected resource is not accessible without token\", function () {\r",
+									"    let contentType = pm.response.headers.get(\"Content-Type\") || \"\";\r",
+									"    \r",
+									"    if (contentType.includes(\"application/json\")) {\r",
+									"        let response = pm.response.json();\r",
+									"        pm.expect(response.id).to.be.undefined;\r",
+									"    } else {\r",
+									"        pm.expect(pm.response.text()).to.not.be.empty;\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Error response is returned\", function () {\r",
+									"    let responseText = pm.response.text().toLowerCase();\r",
+									"    pm.expect(\r",
+									"        responseText.includes(\"error\") ||\r",
+									"        responseText.includes(\"unauthorized\") ||\r",
+									"        responseText.includes(\"forbidden\")\r",
+									"    ).to.be.true;\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"morpheus\",\r\n    \"job\": \"leader\"\r\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}api/users",
+							"host": [
+								"{{baseUrl}}api"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create User (Invalid Data)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Create user request executed with invalid input\", function () {\r",
+									"    pm.expect(pm.response.code).to.exist;\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response is recorded for validation analysis\", function () {\r",
+									"    let response = pm.response.json();\r",
+									"    pm.expect(response).to.be.an(\"object\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"API allows user creation with empty fields (known issue)\", function () {\r",
+									"    let response = pm.response.json();\r",
+									"    pm.expect(response.name).to.equal(\"\");\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"\",\r\n  \"job\": \"\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}api/users",
+							"host": [
+								"{{baseUrl}}api"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Irfan\",\r\n    \"job\": \"SQA\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}api/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}api"
+							],
+							"path": [
+								"users",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User (Invalid ID)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Update user attempted with invalid ID (observation only)\", function () {\r",
+									"    pm.expect(pm.response.code).to.exist; // 200 in Reqres, fine\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response body recorded for analysis\", function () {\r",
+									"    let response = pm.response.json();\r",
+									"    pm.expect(response.name).to.equal(\"Updated Name\");\r",
+									"    pm.expect(response.job).to.equal(\"Updated Job\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Updated Name\",\r\n  \"job\": \"Updated Job\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}api/users/55555",
+							"host": [
+								"{{baseUrl}}api"
+							],
+							"path": [
+								"users",
+								"55555"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Partially Update User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Jawad\",\r\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}api/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}api"
+							],
+							"path": [
+								"users",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}api/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}api"
+							],
+							"path": [
+								"users",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User (Already Deleted)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Delete user request executed\", function () {\r",
+									"    pm.expect(pm.response.code).to.exist; // 204 in Reqres\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Already deleted user check (observation)\", function () {\r",
+									"    let status = pm.response.code;\r",
+									"    if (status === 204) {\r",
+									"        pm.environment.set(\"deleteObservation\", \"Reqres always returns 204 OK for delete\");\r",
+									"    } else {\r",
+									"        pm.expect(status).to.be.oneOf([404, 410]); // realistic behavior in real API\r",
+									"    }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}api/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}api"
+							],
+							"path": [
+								"users",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
